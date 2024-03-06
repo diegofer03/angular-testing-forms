@@ -12,7 +12,7 @@ describe('RegisterFormComponent', () => {
   let userService: jasmine.SpyObj<UserService>
 
   beforeEach(async () => {
-    const spyUserService = jasmine.createSpyObj<UserService>('UserService', ['create'])
+    const spyUserService = jasmine.createSpyObj<UserService>('UserService', ['create', 'isAvailableByEmail'])
 
     await TestBed.configureTestingModule({
       declarations: [ RegisterFormComponent ],
@@ -28,6 +28,7 @@ describe('RegisterFormComponent', () => {
     fixture = TestBed.createComponent(RegisterFormComponent);
     userService = TestBed.inject(UserService) as jasmine.SpyObj<UserService>
     component = fixture.componentInstance;
+    userService.isAvailableByEmail.and.returnValue(mockObservable({isAvailable: true}))
     fixture.detectChanges();
   });
 
@@ -125,4 +126,14 @@ describe('RegisterFormComponent', () => {
     const errorLabel =  query(fixture, '#errorMsg').nativeElement
     expect(errorLabel).toBeDefined()
   }))
+
+  it('email availability validation', () => {
+    userService.isAvailableByEmail.and.returnValue(mockObservable({isAvailable: false}))
+    setInputValue(fixture, '#email', 'elmo@mail.com')
+    fixture.detectChanges()
+    expect(component.emailField?.invalid).toBeTrue();
+    expect(userService.isAvailableByEmail).toHaveBeenCalledWith('elmo@mail.com');
+    const errorMsg = getText(fixture, '#validateAvailable');
+    expect(errorMsg).toBeDefined();
+  })
 });

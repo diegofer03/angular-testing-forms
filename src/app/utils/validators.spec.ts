@@ -1,7 +1,9 @@
 import { FormControl, FormGroup } from "@angular/forms";
 import { MyValidators } from "./validators";
+import { UserService } from "../services/user/user.service";
+import { mockObservable } from "@testing";
 
-fdescribe('testing validatos ', () => {
+describe('testing validatos ', () => {
   describe('testing validPassword', () => {
     it('should validate correct password returning null', () => {
       const control = new FormControl('diego1123')
@@ -41,6 +43,18 @@ fdescribe('testing validatos ', () => {
         MyValidators.matchPasswords(form);
       }
       expect(fn).toThrow(new Error('matchPasswords: controls not found'))
+    })
+  })
+  describe('email verification', () => {
+    it('should request email verification from api', (doneFn) => {
+      const userService : jasmine.SpyObj<UserService> = jasmine.createSpyObj('UserService', ['isAvailableByEmail'])
+      const control = new FormControl('elmomazo@mail.com')
+      userService.isAvailableByEmail.and.returnValue(mockObservable({isAvailable: true}))
+      const validator = MyValidators.emailVerification(userService)
+      validator(control).subscribe(rta => {
+        expect(rta).toBeNull();
+        doneFn();
+      });
     })
   })
 })
