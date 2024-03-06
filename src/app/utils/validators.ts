@@ -1,4 +1,6 @@
 import { AbstractControl } from '@angular/forms';
+import { UserService } from '../services/user/user.service';
+import { map } from 'rxjs';
 
 export class MyValidators {
 
@@ -22,6 +24,9 @@ export class MyValidators {
   static matchPasswords(control: AbstractControl) {
     const password = control?.get('password')?.value;
     const confirmPassword = control?.get('confirmPassword')?.value;
+    if(password === undefined || confirmPassword === undefined){
+      throw new Error('matchPasswords: controls not found');
+    }
     if (password !== confirmPassword) {
       return {match_password: true};
     }
@@ -43,6 +48,22 @@ export class MyValidators {
   //     );
   //   };
   // }
+
+  static emailVerification( service: UserService){
+    return (control: AbstractControl) => {
+      const value = control.value;
+      return service.isAvailableByEmail(value)
+      .pipe(
+        map((response) => {
+          const isAvailable = response.isAvailable;
+          if (!isAvailable) {
+            return {not_available: true};
+          }
+          return null;
+        })
+      );
+    };
+  }
 
 }
 
